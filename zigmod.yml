@@ -1,0 +1,5 @@
+id: uvkgl6xf1azv3pthg3xqai6p6hn391qvn660yxrmtv8m4jly
+name: sys-netbsd
+main: netbsd.zig
+license: MIT
+description: OS bindings layer for NetBSD
