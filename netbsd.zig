@@ -217,19 +217,19 @@ pub const errno = struct {
         // assert Enum is sequential
         var value: c_ushort = 0; // SUCCESS
         for (std.enums.values(Enum)) |val| {
-            std.debug.assert(@intFromEnum(val) > value);
-            value = @intFromEnum(val);
+            std.debug.assert(@backingInt(val) > value);
+            value = @backingInt(val);
         }
     }
     comptime {
         // sanity test
-        std.debug.assert(@intFromEnum(Enum.EPERM) == 1);
+        std.debug.assert(@backingInt(Enum.EPERM) == 1);
     }
     const list = blk: {
         const values = std.enums.values(Enum);
-        const len = @intFromEnum(values[values.len - 1]) + 1;
+        const len = @backingInt(values[values.len - 1]) + 1;
         var errors: [len]Error = @splat(error.Unexpected);
-        for (values) |f| errors[@intFromEnum(f)] = @field(Error, @tagName(f));
+        for (values) |f| errors[@backingInt(f)] = @field(Error, @tagName(f));
         const final = errors;
         break :blk final;
     };
@@ -280,7 +280,7 @@ pub const eai = struct {
     };
 
     pub fn fromInt(code: c_int) Error {
-        return switch (@as(Enum, @enumFromInt(code))) {
+        return switch (@as(Enum, @fromBackingInt(@intCast(code)))) {
             .EAI_ADDRFAMILY => error.EAI_ADDRFAMILY,
             .EAI_AGAIN => error.EAI_AGAIN,
             .EAI_BADFLAGS => error.EAI_BADFLAGS,
@@ -420,9 +420,7 @@ pub const struct_timeval = extern struct { sec: time_t, usec: suseconds_t };
 pub const suseconds_t = c_int;
 pub const useconds_t = c_uint;
 
-const impdef = @cImport({
-    @cInclude("pthread.h");
-});
+const impdef = @import("c");
 pub const pthread_t = impdef.pthread_t;
 pub const pthread_attr_t = impdef.pthread_attr_t;
 pub const pthread_mutexattr_t = impdef.pthread_mutexattr_t;
@@ -920,7 +918,7 @@ pub fn freeaddrinfo(ai: *const struct_addrinfo) void {
     return libc.freeaddrinfo(ai);
 }
 pub fn socket(domain: AF, ty: c_int, protocol: c_int) errno.Error!c_uint {
-    const rc = libc.socket(@intFromEnum(domain), ty, protocol);
+    const rc = libc.socket(@backingInt(domain), ty, protocol);
     if (rc == -1) return errno.fromInt(errno.fromLibC());
     std.debug.assert(rc > 0);
     return @intCast(rc);
@@ -938,7 +936,7 @@ pub fn getrandom(buf: []u8, flags: c_uint) ![]u8 {
 }
 pub fn clock_gettime(clock_id: CLOCK) !struct_timespec {
     var tp: struct_timespec = undefined;
-    const rc = libc.clock_gettime(@intFromEnum(clock_id), &tp);
+    const rc = libc.clock_gettime(@backingInt(clock_id), &tp);
     if (rc == -1) return errno.fromInt(errno.fromLibC());
     std.debug.assert(rc == 0);
     return tp;
@@ -1034,7 +1032,7 @@ pub fn accept4(socketfd: c_uint, noalias address: ?*struct_sockaddr, noalias add
     return @intCast(rc);
 }
 pub fn shutdown(socketfd: c_uint, how: SHUT) errno.Error!void {
-    const rc = libc.shutdown(@intCast(socketfd), @intFromEnum(how));
+    const rc = libc.shutdown(@intCast(socketfd), @backingInt(how));
     if (rc == -1) return errno.fromInt(errno.fromLibC());
     std.debug.assert(rc == 0);
 }

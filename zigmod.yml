@@ -3,3 +3,4 @@ name: sys-netbsd
 main: netbsd.zig
 license: MIT
 description: OS bindings layer for NetBSD
+translate_c_h: pthread.h
