@@ -368,6 +368,7 @@ pub const libc = struct {
     pub extern fn accept4(socket: c_int, noalias address: ?*struct_sockaddr, noalias address_len: *socklen_t, flags: c_int) c_int;
     pub extern fn shutdown(socket: c_int, how: c_int) c_int;
     pub extern fn unlinkat(fd: c_int, name: [*:0]const u8, flag: c_int) c_int;
+    pub extern fn lseek(fd: c_int, offset: off_t, whence: c_int) off_t;
 };
 
 pub const pid_t = i32;
@@ -850,6 +851,12 @@ pub const IPV6 = struct {
     pub const BINDANY = 64;
 };
 
+pub const SEEK = struct {
+    pub const SET = 0;
+    pub const CUR = 1;
+    pub const END = 2;
+};
+
 pub fn pipe2(flag: c_int) ![2]c_int {
     var fildes: [2]c_int = @splat(-1);
     const rc = libc.pipe2(&fildes, flag);
@@ -1076,4 +1083,9 @@ pub fn unlinkat(fd: c_int, name: [*:0]const u8, flag: c_int) !void {
     const rc = libc.unlinkat(fd, name, flag);
     if (rc == -1) return errno.fromInt(errno.fromLibC());
     std.debug.assert(rc == 0);
+}
+pub fn lseek(fd: c_int, offset: off_t, whence: c_int) !void {
+    const rc = libc.lseek(fd, offset, whence);
+    if (rc == -1) return errno.fromInt(errno.fromLibC());
+    std.debug.assert(rc >= 0);
 }
